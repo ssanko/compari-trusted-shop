@@ -2,14 +2,15 @@
 
 namespace Ssanko\Compari;
 
-use Ssanko\Compari\Config\Constant;
-use Ssanko\Compari\Exception\ResponseException;
-use Ssanko\Compari\Exception\TrustedShopException;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Exception\RequestException;
-use GuzzleHttp\Psr7\Request;
+use GuzzleHttp\RequestOptions;
+use Ssanko\Compari\Config\Constant;
+use Ssanko\Compari\Exception\ResponseException;
+use Ssanko\Compari\Exception\TrustedShopException;
+use Ssanko\Compari\Response\Response;
 
 class TrustedShop
 {
@@ -21,23 +22,30 @@ class TrustedShop
         protected ?string $webApiKey
     ) {}
 
-    public function setEmail(string $email): void
+    public function setEmail(string $email): static
     {
         $this->email = $email;
+
+        return $this;
     }
 
     /**
      * @param string $productName - A product name from the customer's cart.
      * @param ?string $productId - A product id, it must be same as in the feed.
      */
-    public function addProduct(string $productName, ?string $productId = null): void
+    public function addProduct(string $productName, ?string $productId = null): static
     {
-        $content = [];
-        $content['Name'] = $productName;
+        $content = [
+            'Name' => $productName
+        ];
+
         if ($productId !== null) {
             $content['Id'] = $productId;
         }
+
         $this->products[] = $content;
+
+        return $this;
     }
 
     /**
@@ -57,13 +65,12 @@ class TrustedShop
             throw TrustedShopException::emptyEmail();
         }
 
-        $params = [];
-        $params['Version'] = Constant::VERSION;
-        $params['WebApiKey'] = $this->webApiKey;
-        $params['Email'] = $this->email;
-        $params['Products'] = json_encode($this->products);
-
-        $query = $this->getQuery($params);
+        $query = $this->getQuery([
+            'Version'   => Constant::VERSION,
+            'WebApiKey' => $this->webApiKey,
+            'Email'     => $this->email,
+            'Products'  => json_encode($this->products)
+        ]);
 
         return Response::create($this->webApiKey, $query);
     }
@@ -83,20 +90,24 @@ class TrustedShop
             'connect_timeout' => 5,
         ]);
 
-        $request = new Request('POST', Constant::SERVICE_TOKEN_REQUEST, $params);
-
         try {
-            $response = $client->send($request);
+            $response = $client->post(Constant::SERVICE_TOKEN_REQUEST, [
+                RequestOptions::FORM_PARAMS => $params,
+            ]);
 
-            $responseBody = json_decode($response->getBody(), true, flags: JSON_THROW_ON_ERROR);
+            $responseBody = json_decode(
+                json       : $response->getBody()->getContents(),
+                associative: true,
+                flags      : JSON_THROW_ON_ERROR
+            );
 
             return match ($response->getStatusCode()) {
-                200 => '?' . http_build_query([
-                        'Token' => $responseBody->Token,
+                200     => '?' . http_build_query([
+                        'Token'     => $responseBody->Token,
                         'webApiKey' => $this->webApiKey,
-                        'C' => '',
+                        'C'         => '',
                     ]),
-                400 => throw ResponseException::badRequest($responseBody->ErrorCode, $responseBody->ErrorMessage),
+                400     => throw ResponseException::badRequest($responseBody->ErrorCode, $responseBody->ErrorMessage),
                 default => throw ResponseException::requestFailed()
             };
         } catch (ConnectException) {
