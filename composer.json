@@ -1,0 +1,19 @@
+{
+  "name": "ssanko/compari-trusted-shop",
+  "description": "Client for compari trusted shop",
+  "keywords": [
+    "php",
+    "compari",
+    "trusted shop"
+  ],
+  "require": {
+    "php": "^8.0",
+    "guzzlehttp/guzzle": "^7.8"
+  },
+  "autoload": {
+    "psr-4": {
+      "Ssanko\\Compari\\": "src/"
+    }
+  },
+  "minimum-stability": "dev"
+}
