@@ -1,19 +1,20 @@
 {
-  "name": "ssanko/compari-trusted-shop",
-  "description": "Client for compari trusted shop",
-  "keywords": [
-    "php",
-    "compari",
-    "trusted shop"
-  ],
-  "require": {
-    "php": "^8.0",
-    "guzzlehttp/guzzle": "^7.5"
-  },
-  "autoload": {
-    "psr-4": {
-      "Ssanko\\Compari\\": "src/"
-    }
-  },
-  "minimum-stability": "dev"
+    "name": "ssanko/compari-trusted-shop",
+    "description": "Client for compari trusted shop",
+    "keywords": [
+        "php",
+        "compari",
+        "arukereso",
+        "trusted shop"
+    ],
+    "require": {
+        "php": "^8.0",
+        "guzzlehttp/guzzle": "^7.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "Ssanko\\Compari\\": "src/"
+        }
+    },
+    "minimum-stability": "dev"
 }

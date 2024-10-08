@@ -7,7 +7,8 @@ use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\RequestOptions;
-use Ssanko\Compari\Config\Constant;
+use Ssanko\Compari\Config\ArukeresoConfig;
+use Ssanko\Compari\Config\CompariConfig;
 use Ssanko\Compari\Exception\ResponseException;
 use Ssanko\Compari\Exception\TrustedShopException;
 use Ssanko\Compari\Response\Response;
@@ -19,7 +20,8 @@ class TrustedShop
     protected array $products = [];
 
     public function __construct(
-        protected ?string $webApiKey
+        protected ?string $webApiKey,
+        protected CompariConfig|ArukeresoConfig $config
     ) {}
 
     public function setEmail(string $email): static
@@ -66,13 +68,13 @@ class TrustedShop
         }
 
         $query = $this->getQuery([
-            'Version'   => Constant::VERSION,
+            'Version'   => $this->config->getApiVersion(),
             'WebApiKey' => $this->webApiKey,
             'Email'     => $this->email,
             'Products'  => json_encode($this->products)
         ]);
 
-        return Response::create($this->webApiKey, $query);
+        return Response::create($this->webApiKey, $query, $this->config);
     }
 
     /**
@@ -85,21 +87,25 @@ class TrustedShop
     protected function getQuery(array $params): string
     {
         $client = new Client([
-            'base_uri'        => Constant::SERVICE_URL_SEND,
+            'base_uri'        => $this->config->getServiceUrlSend(),
             'timeout'         => 5,
             'connect_timeout' => 5,
         ]);
 
         try {
-            $response = $client->post(Constant::SERVICE_TOKEN_REQUEST, [
+            $response = $client->post($this->config->getServiceTokenRequest(), [
                 RequestOptions::FORM_PARAMS => $params,
             ]);
 
             $responseBody = json_decode(
                 json       : $response->getBody()->getContents(),
-                associative: true,
+                associative: false,
                 flags      : JSON_THROW_ON_ERROR
             );
+
+            if (empty($responseBody)) {
+                throw ResponseException::trustedShopNotEnabled();
+            }
 
             return match ($response->getStatusCode()) {
                 200     => '?' . http_build_query([

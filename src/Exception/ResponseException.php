@@ -4,10 +4,11 @@ namespace Ssanko\Compari\Exception;
 
 class ResponseException extends CompariException
 {
-    public const ERROR_JSON_ERROR        = 1;
-    public const ERROR_REQUEST_TIMED_OUT = 2;
-    public const ERROR_REQUEST_FAILED    = 3;
-    public const ERROR_BAD_REQUEST       = 4;
+    public const ERROR_JSON_ERROR         = 1;
+    public const ERROR_REQUEST_TIMED_OUT  = 2;
+    public const ERROR_REQUEST_FAILED     = 3;
+    public const ERROR_BAD_REQUEST        = 4;
+    public const TRUSTED_SHOP_NOT_ENABLED = 5;
 
     private function __construct(string $message, int $code)
     {
@@ -39,4 +40,9 @@ class ResponseException extends CompariException
         return new self("Bad request: $errorCode - $errorMessage", self::ERROR_BAD_REQUEST);
     }
 
+    public static function trustedShopNotEnabled(): self
+    {
+        return new self("TrustedShop program not enabled", self::TRUSTED_SHOP_NOT_ENABLED);
+
+    }
 }
