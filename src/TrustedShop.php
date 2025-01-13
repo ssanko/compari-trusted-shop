@@ -110,7 +110,7 @@ class TrustedShop
             return match ($response->getStatusCode()) {
                 200     => '?' . http_build_query([
                         'Token'     => $responseBody->Token,
-                        'webApiKey' => $this->webApiKey,
+                        'WebApiKey' => $this->webApiKey,
                         'C'         => '',
                     ]),
                 400     => throw ResponseException::badRequest($responseBody->ErrorCode, $responseBody->ErrorMessage),
